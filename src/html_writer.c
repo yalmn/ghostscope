@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #define MAX_IP_LEN 64
+#define MAX_SEEN_IPS 10000
 
 struct MemoryStruct {
   char *memory;
@@ -28,6 +29,16 @@ static size_t write_callback(void *contents, size_t size, size_t nmemb,
   mem->memory[mem->size] = 0;
 
   return realsize;
+}
+
+int ip_already_seen(char seen_ips[][MAX_IP_LEN], int seen_count,
+                    const char *ip) {
+  for (int i = 0; i < seen_count; i++) {
+    if (strcmp(seen_ips[i], ip) == 0) {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 void write_html_header(FILE *out) {
@@ -75,7 +86,6 @@ void write_json_to_html(FILE *out, cJSON *json) {
     fprintf(out, "<br>\n");
   }
 
-  // Suche nur in data[]-Array nach vulns
   cJSON *data = cJSON_GetObjectItemCaseSensitive(json, "data");
   if (cJSON_IsArray(data)) {
     cJSON *entry;
@@ -83,10 +93,9 @@ void write_json_to_html(FILE *out, cJSON *json) {
       cJSON *vulns = cJSON_GetObjectItemCaseSensitive(entry, "vulns");
       if (cJSON_IsObject(vulns)) {
         fprintf(out, "<strong>Vulnerabilities:</strong><ul>\n");
-
         cJSON *vuln = vulns->child;
         while (vuln) {
-          if (vuln->string) {
+          if (vuln->string && cJSON_IsObject(vuln)) {
             fprintf(out, "<li><strong>%s</strong><ul>", vuln->string);
 
             cJSON *cvss = cJSON_GetObjectItemCaseSensitive(vuln, "cvss");
@@ -124,7 +133,6 @@ void write_json_to_html(FILE *out, cJSON *json) {
           }
           vuln = vuln->next;
         }
-
         fprintf(out, "</ul>\n");
       }
     }
@@ -146,10 +154,18 @@ void generate_html_report(const char *api_key, const char *ip_list_file,
   write_html_header(outfile);
 
   char ip[MAX_IP_LEN];
+  char seen_ips[MAX_SEEN_IPS][MAX_IP_LEN];
+  int seen_count = 0;
+
   while (fgets(ip, sizeof(ip), infile)) {
     ip[strcspn(ip, "\r\n")] = '\0';
     if (strlen(ip) == 0)
       continue;
+    if (ip_already_seen(seen_ips, seen_count, ip))
+      continue;
+
+    strncpy(seen_ips[seen_count], ip, MAX_IP_LEN);
+    seen_count++;
 
     char url[512];
     snprintf(url, sizeof(url), "https://api.shodan.io/shodan/host/%s?key=%s",
