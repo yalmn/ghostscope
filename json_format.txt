@@ -1,0 +1,42 @@
+{
+    area_code: ,
+    asn: "",
+    city: "",
+    country_code: "",
+    data:
+    {
+        0: { ... },
+        1: { ... }
+        ...
+    },
+    domains:
+    {
+        0: ""
+        ...
+    },
+    hostnames:
+    {
+        0: "",
+        1: "",
+        ...
+    },
+    ip_str: "",
+    isp: "",
+    last_update: ,
+    org: "",
+    os:
+    ports:
+    {
+        0: ,
+        1: ,
+        ...
+    },
+    region_code:
+    vulns:
+    {
+        0: "",
+        1: "",
+        2: "",
+        ...
+    }
+}
