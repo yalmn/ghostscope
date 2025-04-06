@@ -51,7 +51,6 @@ void write_html_header(FILE *out) {
                  .legend{margin-bottom:20px; padding:10px; background:#eee; border:1px solid #ccc;}"
           "</style></head><body><h1>Shodan IP Report</h1>\n");
 
-  // Legende einfügen
   fprintf(out, "<div class='legend'><strong>Legende CVSS Score:</strong><br>"
                "<span class='low'>CVSS &lt; 4.0</span> = Low<br>"
                "<span class='medium'>CVSS 4.0 - 6.9</span> = Medium<br>"
@@ -195,7 +194,7 @@ void generate_html_report(const char *api_key, const char *ip_list_file,
       free(chunk.memory);
     }
 
-    sleep(1); // API Rate Limit einhalten
+    sleep(1);
   }
 
   write_html_footer(outfile);
