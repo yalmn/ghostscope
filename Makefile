@@ -13,6 +13,6 @@ $(BIN): $(OBJ)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -f $(OBJ) $(BIN)
+	rm -f $(OBJ) $(BIN) ./build/result.html ./build/filtered.txt
 
 .PHONY: all clean
