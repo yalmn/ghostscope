@@ -30,7 +30,11 @@ static size_t write_callback(void *contents, size_t size, size_t nmemb,
   return realsize;
 }
 
-static int fetch_attack_vector(const char *cve, char *buffer, size_t bufsz) {
+/* Fetch attack vector and short description from CVE JSON.
+ * The GitHub cvelistV5 repository structure is used. On success the
+ * attack vector and description are written to the provided buffers. */
+static int fetch_cve_info(const char *cve, char *vector, size_t vecsz,
+                          char *desc, size_t descsz) {
   char year[8] = "";
   char id_part[16] = "";
 
@@ -64,6 +68,17 @@ static int fetch_attack_vector(const char *cve, char *buffer, size_t bufsz) {
         if (cJSON_IsObject(containers)) {
           cJSON *cna = cJSON_GetObjectItemCaseSensitive(containers, "cna");
           if (cJSON_IsObject(cna)) {
+            cJSON *descs = cJSON_GetObjectItemCaseSensitive(cna, "descriptions");
+            if (cJSON_IsArray(descs)) {
+              cJSON *d = cJSON_GetArrayItem(descs, 0);
+              if (cJSON_IsObject(d)) {
+                cJSON *val = cJSON_GetObjectItemCaseSensitive(d, "value");
+                if (cJSON_IsString(val)) {
+                  strncpy(desc, val->valuestring, descsz - 1);
+                  desc[descsz - 1] = '\0';
+                }
+              }
+            }
             cJSON *metrics = cJSON_GetObjectItemCaseSensitive(cna, "metrics");
             if (cJSON_IsArray(metrics)) {
               cJSON *metric;
@@ -74,10 +89,35 @@ static int fetch_attack_vector(const char *cve, char *buffer, size_t bufsz) {
                 if (cJSON_IsObject(cvss)) {
                   cJSON *attackVector = cJSON_GetObjectItemCaseSensitive(cvss, "attackVector");
                   if (cJSON_IsString(attackVector)) {
-                    strncpy(buffer, attackVector->valuestring, bufsz - 1);
-                    buffer[bufsz - 1] = '\0';
+                    strncpy(vector, attackVector->valuestring, vecsz - 1);
+                    vector[vecsz - 1] = '\0';
                     ret = 1;
                     break;
+                  }
+                }
+              }
+            }
+          }
+          /* Also check additional vendor data under containers.adp */
+          cJSON *adp = cJSON_GetObjectItemCaseSensitive(containers, "adp");
+          if (cJSON_IsArray(adp)) {
+            cJSON *adp_entry;
+            cJSON_ArrayForEach(adp_entry, adp) {
+              cJSON *metrics = cJSON_GetObjectItemCaseSensitive(adp_entry, "metrics");
+              if (cJSON_IsArray(metrics)) {
+                cJSON *metric;
+                cJSON_ArrayForEach(metric, metrics) {
+                  cJSON *cvss = cJSON_GetObjectItemCaseSensitive(metric, "cvssV3_1");
+                  if (!cJSON_IsObject(cvss))
+                    cvss = cJSON_GetObjectItemCaseSensitive(metric, "cvssV3");
+                  if (cJSON_IsObject(cvss)) {
+                    cJSON *attackVector = cJSON_GetObjectItemCaseSensitive(cvss, "attackVector");
+                    if (cJSON_IsString(attackVector)) {
+                      strncpy(vector, attackVector->valuestring, vecsz - 1);
+                      vector[vecsz - 1] = '\0';
+                      ret = 1;
+                      break;
+                    }
                   }
                 }
               }
@@ -186,10 +226,17 @@ void generate_attack_vector_report(const char *api_key, const char *ip_list_file
                     strncpy(seen_cves[seen_cve_count++], vuln->string, 63);
 
                     char vector[64] = "Unknown";
-                    if (fetch_attack_vector(vuln->string, vector, sizeof(vector))) {
-                      fprintf(outfile, "<li><strong>%s:</strong> %s</li>\n", vuln->string, vector);
+                    char desc[256] = "";
+                    if (fetch_cve_info(vuln->string, vector, sizeof(vector), desc,
+                                       sizeof(desc))) {
+                      fprintf(outfile,
+                              "<li><strong>%s:</strong> %s<br>%s</li>\n",
+                              vuln->string, vector,
+                              strlen(desc) ? desc : "");
                     } else {
-                      fprintf(outfile, "<li><strong>%s:</strong> %s</li>\n", vuln->string, vector);
+                      fprintf(outfile,
+                              "<li><strong>%s:</strong> %s</li>\n",
+                              vuln->string, vector);
                     }
                   }
                   vuln = vuln->next;

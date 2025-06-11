@@ -60,5 +60,6 @@ Weitere Optionen:
 ./ghostscope --attack   # Erstellt cve-attack-vector.html
 ```
 
-Die Attack-Vektor-Daten werden aus dem GitHub-Projekt
-[cvelistV5](https://github.com/CVEProject/cvelistV5) geladen.
+Der erzeugte Report listet pro gefundener CVE den Attack‑Vector sowie eine kurze
+Beschreibung auf. Die Daten stammen aus dem GitHub‑Projekt
+[cvelistV5](https://github.com/CVEProject/cvelistV5).

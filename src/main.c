@@ -11,7 +11,8 @@ void show_usage(const char *progname) {
   printf("Verwendung:\n");
   printf("  %s --filter     Nur IP-Ranges filtern\n", progname);
   printf("  %s --report     Nur HTML-Report generieren\n", progname);
-  printf("  %s --attack     CVE Attack-Vektoren generieren\n", progname);
+  printf("  %s --attack     CVE Attack-Vektoren mit Beschreibung generieren\n",
+         progname);
   printf("  %s --all        Alles ausführen (Filter + Report + Attack)\n", progname);
 }
 
