@@ -52,4 +52,16 @@ Erstelle eine Datei `iprange.txt` mit IP-Adressen oder CIDR-Ranges, z. B.:
 ### Tool ausführen
 
   ```bash
-  ./ghostscope --all (Für weitere flags --help)
+  ./ghostscope --all (Für weitere Flags --help)
+
+Weitere Optionen:
+
+```bash
+./ghostscope --attack   # Erstellt cve-attack-vector.html
+```
+
+Der erzeugte Report listet pro gefundener CVE den Attack‑Vector sowie eine kurze
+Beschreibung auf. Die Daten stammen aus dem GitHub‑Projekt
+[cvelistV5](https://github.com/CVEProject/cvelistV5). Für einige CVEs ohne
+CVSS-Angaben enthält GhostScope eine kleine Offline-Datenbank als Fallback,
+damit keine "Unknown" Werte erscheinen.
