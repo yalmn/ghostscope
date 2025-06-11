@@ -52,4 +52,13 @@ Erstelle eine Datei `iprange.txt` mit IP-Adressen oder CIDR-Ranges, z. B.:
 ### Tool ausführen
 
   ```bash
-  ./ghostscope --all (Für weitere flags --help)
+  ./ghostscope --all (Für weitere Flags --help)
+
+Weitere Optionen:
+
+```bash
+./ghostscope --attack   # Erstellt cve-attack-vector.html
+```
+
+Die Attack-Vektor-Daten werden aus dem GitHub-Projekt
+[cvelistV5](https://github.com/CVEProject/cvelistV5) geladen.
